@@ -1,13 +1,15 @@
 # AI Image Detector API
 
-This is a Flask-based API for detecting AI-generated images.
+This is a FastAPI-based API for detecting AI-generated images using a TensorFlow model.
 
 ## Project Structure
 
-- `app.py`: Main application file containing the API endpoints.
-- `model/`: Directory to store the trained ML model (e.g., `.keras` or `.h5` files).
-- `uploads/`: Temporary storage for uploaded images (if needed).
-- `requirements.txt`: Python dependencies.
+- `app.py`: Main application file containing the FastAPI endpoints and model logic.
+- `model/`: Directory containing the trained ML model (`ai_image_detector_final.keras`).
+- `uploads/`: Directory for temporary image processing.
+- `requirements.txt`: Python dependencies (FastAPI, TensorFlow-CPU, etc.).
+- `render.yaml`: Configuration for deployment on Render.
+- `runtime.txt`: Specifies the Python runtime version.
 
 ## Setup
 
@@ -30,11 +32,16 @@ This is a Flask-based API for detecting AI-generated images.
     python app.py
     ```
 
-The API will be available at `http://localhost:5000`.
+The API will be available at `http://localhost:8000`. You can also access the interactive documentation at `http://localhost:8000/docs`.
 
 ## API Endpoints
 
-### 1. Health Check
+### 1. Root
+- **URL**: `/`
+- **Method**: `GET`
+- **Response**: Status and basic info.
+
+### 2. Health Check
 - **URL**: `/health`
 - **Method**: `GET`
 - **Response**:
@@ -45,7 +52,7 @@ The API will be available at `http://localhost:5000`.
   }
   ```
 
-### 2. Predict Image
+### 3. Predict Image
 - **URL**: `/predict`
 - **Method**: `POST`
 - **Body**: `multipart/form-data` with a key `file` containing the image.
@@ -60,10 +67,11 @@ The API will be available at `http://localhost:5000`.
   }
   ```
 
-## Model Integration
+## Deployment
 
-Currently, the `app.py` uses a placeholder logic in `load_model()` and `predict_is_ai_generated()`. To integrate a real model:
+The project is configured for deployment on **Render** (via `render.yaml`). It uses `tensorflow-cpu` to keep the deployment size manageable and compatible with CPU environments.
 
-1.  Place your model file in the `model/` directory.
-2.  Update `MODEL_PATH` in `app.py`.
-3.  Uncomment the model loading and prediction code in `app.py`.
+## Model Logic
+
+The API uses a Keras model located at `model/ai_image_detector_final.keras`. It expects input images to be resized to 224x224 and normalized.
+
