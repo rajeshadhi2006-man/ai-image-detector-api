@@ -1,8 +1,7 @@
-fastapi==0.109.0
-uvicorn==0.27.0
-python-multipart==0.0.9
+fastapi
+uvicorn
 tensorflow-cpu==2.15.0
-pillow==10.1.0
-numpy==1.26.0
-python-dotenv==1.0.0
-gunicorn==21.2.0
+numpy
+pillow
+python-multipart
+gunicorn
