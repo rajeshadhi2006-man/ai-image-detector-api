@@ -7,26 +7,39 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Reduce TensorFlow logging clutter
 import io
 import time
 import sys
+import logging
 import numpy as np
 from PIL import Image
 
-print("Initializing FastAPI app...", flush=True)
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    stream=sys.stdout
+)
+logger = logging.getLogger("ai-detector-api")
+
+logger.info("Initializing FastAPI app...")
 
 try:
     from fastapi import FastAPI, File, UploadFile, HTTPException
     from fastapi.middleware.cors import CORSMiddleware
     from fastapi.responses import JSONResponse
-    print("FastAPI libraries imported.", flush=True)
+    logger.info("FastAPI libraries imported.")
 except Exception as e:
-    print(f"Error importing FastAPI libraries: {e}", flush=True)
+    logger.error(f"Error importing FastAPI libraries: {e}")
     sys.exit(1)
 
-print("Importing TensorFlow...", flush=True)
+logger.info("Importing TensorFlow...")
 try:
-    import tensorflow as tf
-    print("TensorFlow imported successfully.", flush=True)
+    with io.StringIO() as f:
+        # Redirect stdout to suppress TF import messages if necessary, 
+        # but here we just want to catch the error
+        import tensorflow as tf
+    logger.info(f"TensorFlow {tf.__version__} imported successfully.")
 except Exception as e:
-    print(f"Error importing TensorFlow: {e}", flush=True)
+    logger.error(f"Error importing TensorFlow: {e}")
+
 
 # Configuration
 UPLOAD_FOLDER = 'uploads'
@@ -57,20 +70,20 @@ def load_model():
     Load the trained Keras model.
     """
     if os.path.exists(MODEL_PATH):
-        print(f"Loading model from {MODEL_PATH}...", flush=True)
+        logger.info(f"Loading model from {MODEL_PATH}...")
         try:
             model = tf.keras.models.load_model(MODEL_PATH)
-            print("Model loaded successfully!", flush=True)
+            logger.info("Model loaded successfully!")
             return model
         except Exception as e:
-            print(f"Error loading model: {e}", flush=True)
+            logger.error(f"Error loading model: {e}")
             return None
     else:
-        print(f"Model file not found at {MODEL_PATH}. Using dummy prediction logic.", flush=True)
+        logger.warning(f"Model file not found at {MODEL_PATH}. Using dummy prediction logic.")
         return None
 
 # Load the model once at startup
-print("Starting model load...", flush=True)
+logger.info("Starting model load...")
 MODEL = load_model()
 
 def preprocess_image(image: Image.Image):
@@ -104,11 +117,11 @@ def predict_is_ai_generated(image: Image.Image):
             is_ai = score > 0.5
             return is_ai, score
         except Exception as e:
-            print(f"Prediction error: {e}", flush=True)
+            logger.error(f"Prediction error: {e}")
             return False, 0.0
     else:
         # Fallback dummy logic if model isn't loaded
-        print("Using fallback logic (No model loaded)", flush=True)
+        logger.warning("Using fallback logic (No model loaded)")
         width, height = image.size
         return (width == 1024), 0.5
 
@@ -152,7 +165,7 @@ async def predict(file: UploadFile = File(...)):
         }
         
     except Exception as e:
-        print(f"Error processing image: {e}")
+        logger.error(f"Error processing image: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
